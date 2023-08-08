@@ -3,7 +3,7 @@ Library for interacting with NASA's Astronomy Picture of the Day API.
 '''
 import requests
 
-NASA_API_KEY = 'Get your own' # follow instructions to get this
+NASA_API_KEY = 'PxiI0pDv4hIkna0wznUxR5nL5p1j5AdhP8I59Sq3'
 APOD_URL = "https://api.nasa.gov/planetary/apod"
 
 def main():

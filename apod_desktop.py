@@ -23,8 +23,8 @@ import sys
 # Full paths of the image cache folder and database
 # - The image cache directory is a subdirectory of the specified parent directory.
 # - The image cache database is a sqlite database located in the image cache directory.
-script_dir = # SHOW CORRECT PATH HERE
-image_cache_dir = # SHOW CORRECT PATH HERE
+script_dir = 'd'
+image_cache_dir = 'C:\Users\DWest\Desktop\Scripting application labs\Scripting_FINAL_PROJECT_DaltonWesterman\image cache DIR'
 image_cache_db = # SHOW CORRECT PATH HERE
 
 def main():
@@ -64,7 +64,7 @@ def get_apod_date():
             sys.exit('Script execution aborted')
 
         # Validate that the date is within range
-        MIN_APOD_DATE = # Complete this
+        MIN_APOD_DATE = date(1995, 6, 15)
         if apod_date < MIN_APOD_DATE:
             print(f'Error: Date too far in past; First APOD was on {MIN_APOD_DATE.isoformat()}')
             sys.exit('Script execution aborted')
@@ -73,7 +73,7 @@ def get_apod_date():
             sys.exit('Script execution aborted')
     else:
         # No date parameter has been provided, so use today's date
-        apod_date = # Fill in here
+        apod_date = date.today()
     
     return apod_date
 
@@ -85,8 +85,32 @@ def init_apod_cache():
     # Create the image cache directory if it does not already exist
     # You should know what to do here as demonstrated in previous labs
 
+dir_path = 'C:\Users\DWest\Desktop\Scripting application labs\Scripting_FINAL_PROJECT_DaltonWesterman'
+if not os.path.exists(dir_path):
+    os.mkdir(dir_path)
+
+if not os.path.exists(dir_path):
+    os.makedirs(dir_path)
+
     # Create the DB if it does not already exist
     #Complete this with the correct instructions
+
+if not os.path.exists(image_cache_db):
+    os.makedirs(image_cache_db)
+    db_cxn = sqlite3.connect(image_cache_db)
+    db_cursor = db_cxn.cursor()
+    create_table_query = """
+    Create table if one doesn't alrady exist image_data
+    (
+        Id              Integer Primary Key,
+        Title           Text Not Null,
+        explanation     Text Not Null,
+        file_path       Text Not Null,
+        sha.256         Text Not Null
+    );
+"""
+db_cursor.execute(create_table_query)
+
 
 def add_apod_to_cache(apod_date):
     """Adds the APOD image from a specified date to the image cache.
@@ -111,6 +135,13 @@ def add_apod_to_cache(apod_date):
     print("APOD title:", apod_title)
 
     # Download the APOD image
+    apod_url = get_apod_image_url(apod_info)
+    apod_image_data = requests.get(apod_url)
+    apod_sha256 = hashlib.sha256(apod_image_data).hexdigest()
+    print("APOD SHA 256", apod_sha256)
+
+
+
    # four lines of code expected here
 
     # Check whether the APOD already exists in the image cache
@@ -143,8 +174,10 @@ def add_apod_to_db(title, explanation, file_path, sha256):
     """
     print("Adding APOD to image cache DB...", end='')
     try:
-        #Add line one
-        # Add line two
+        
+        db_cxn = sqlite3.connect(image_cache_db)
+        db_cursor = db_cxn.cursor()
+
         insert_image_query = """
             INSERT INTO image_data 
             (title, explanation, file_path, sha256)
@@ -223,7 +256,7 @@ def determine_apod_file_path(image_title, image_url):
     file_name = file_name.replace(' ', '_')
     
     # Remove any non-word characters
-    file_name = #Complete this
+    file_name = filename = re.sub('[^A-Za-z0-9]+', '', image_title.strip().replace(' ', ''))
     
     # Append the extension to the file name
     file_name = '.'.join((file_name, file_ext))
@@ -245,9 +278,14 @@ def get_apod_info(image_id):
         (Dictionary keys: 'title', 'explanation', 'file_path')
     """
     # Query DB for image info
-    #Add line one here
-    # Add line two here
-    image_path_query = # add appropriate query_result
+    db_cxn = sqlite3.connect(image_id)
+    db_cursor = db_cxn.cursor()
+    
+    image_path_query = f"""
+        SELECT title, explanation, file_path
+        FROM image_data
+        WHERE id = {image_id}
+        """
     
     db_cursor.execute(image_path_query)
     query_result = db_cursor.fetchone()
